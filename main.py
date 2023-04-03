@@ -18,7 +18,8 @@ def get_text_massage(message):
     for animal in info:
         try:
             if 'g' in animal['characteristics']['weight'] and 'k' not in animal['characteristics']['weight']:
-                bot.send_message(message.from_user.id, animal['name'], animal['characteristics']['weight'])
+                bot.send_message(message.from_user.id, animal['name'])
+                bot.send_message(message.from_user.id, animal['characteristics']['weight'])
         except:
             continue
 
@@ -32,7 +33,8 @@ def get_text_massage(message):
                 i_weight = animal['characteristics']['weight'].split()
                 for elem in i_weight:
                     if elem.endswith('kg') and len(elem) > 4 and '.' not in elem and '-' not in elem:
-                        bot.send_message(message.from_user.id, animal['name'], animal['characteristics']['weight'])
+                        bot.send_message(message.from_user.id, animal['name'])
+                        bot.send_message(message.from_user.id, animal['characteristics']['weight'])
                         break
         except:
             continue
