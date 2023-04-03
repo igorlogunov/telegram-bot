@@ -24,7 +24,7 @@ def get_text_massage(message):
 
 @bot.message_handler(commands=['high'])
 def get_text_massage(message):
-    bot.send_message(message.from_user.id, 'Животные весом более 1000 кг:')
+    bot.send_message(message.from_user.id, 'Животные весом более 100 кг:')
     info = make_request()
     for animal in info:
         try:
