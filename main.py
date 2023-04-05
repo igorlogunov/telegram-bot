@@ -6,6 +6,11 @@ from typing import Optional
 
 
 bot = telebot.TeleBot('5903916240:AAHTMxapD6hnrCSc2fN47FWEh-nTjxYIW5Y')
+answer = 0
+
+def amount_display(message):
+    global answer
+    answer = int(message.text)
 
 @bot.message_handler(commands=['start'])
 def get_text_massage(message):
@@ -13,31 +18,58 @@ def get_text_massage(message):
 
 @bot.message_handler(commands=['low'])
 def get_text_massage(message):
+    global answer
+    count = 0
     bot.send_message(message.from_user.id, 'Животные весом до 1 кг:')
     info = make_request()
+    amount_display(message)
+    bot.send_message(message.from_user.id, 'Сколько животных нужно вывести?')
+    bot.register_next_step_handler(message, amount_display)
     for animal in info:
-        try:
-            if 'g' in animal['characteristics']['weight'] and 'k' not in animal['characteristics']['weight']:
-                bot.send_message(message.from_user.id, animal['name'])
-                bot.send_message(message.from_user.id, animal['characteristics']['weight'])
-        except:
-            continue
+        if count != answer:
+            try:
+                if 'g' in animal['characteristics']['weight'] and 'k' not in animal['characteristics']['weight']:
+                    bot.send_message(message.from_user.id, animal['name'])
+                    bot.send_message(message.from_user.id, animal['characteristics']['weight'])
+                    count += 1
+            except:
+                continue
 
 @bot.message_handler(commands=['high'])
 def get_text_massage(message):
+    count = 0
     bot.send_message(message.from_user.id, 'Животные весом более 100 кг:')
+    bot.send_message(message.from_user.id, 'Сколько животных нужно вывести?')
     info = make_request()
-    for animal in info:
-        try:
-            if 'kg' in animal['characteristics']['weight']:
-                i_weight = animal['characteristics']['weight'].split()
-                for elem in i_weight:
-                    if elem.endswith('kg') and len(elem) > 4 and '.' not in elem and '-' not in elem:
-                        bot.send_message(message.from_user.id, animal['name'])
-                        bot.send_message(message.from_user.id, animal['characteristics']['weight'])
-                        break
-        except:
-            continue
+    while count < int(message.text):
+        for animal in info:
+            try:
+                if 'kg' in animal['characteristics']['weight']:
+                    i_weight = animal['characteristics']['weight'].split()
+                    for elem in i_weight:
+                        if elem.endswith('kg') and len(elem) > 4 and '.' not in elem and '-' not in elem:
+                            bot.send_message(message.from_user.id, animal['name'])
+                            bot.send_message(message.from_user.id, animal['characteristics']['weight'])
+                            count += 1
+                            break
+            except:
+                continue
+
+# @bot.message_handler(commands=['custom'])
+# def get_text_massage(message):
+#     count = 0
+#     bot.send_message(message.from_user.id, 'Животные весом до 1 кг:')
+#     bot.send_message(message.from_user.id, 'Сколько животных нужно вывести?')
+#     info = make_request()
+#     while count != int(message.text):
+#         for animal in info:
+#             try:
+#                 if 'g' in animal['characteristics']['weight'] and 'k' not in animal['characteristics']['weight']:
+#                     bot.send_message(message.from_user.id, animal['name'])
+#                     bot.send_message(message.from_user.id, animal['characteristics']['weight'])
+#                     count += 1
+#             except:
+#                 continue
 
 def api_request(url: str, headers:dict, querystring: dict) -> Optional[dict]:
     """
@@ -79,6 +111,9 @@ def make_request() -> Optional[dict]:
 while True:
     try:
         bot.polling(none_stop=True, interval=0)
+    except KeyboardInterrupt:
+        print('Остановка')
+        break
     except:
         print('пробую переподключиться')
         time.sleep(1)
