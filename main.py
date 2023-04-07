@@ -6,24 +6,13 @@ from typing import Optional
 
 
 bot = telebot.TeleBot('5903916240:AAHTMxapD6hnrCSc2fN47FWEh-nTjxYIW5Y')
-answer = 0
+min_custom = 0
+max_custom = 0
 
-def amount_display(message):
-    global answer
-    answer = int(message.text)
-
-@bot.message_handler(commands=['start'])
-def get_text_massage(message):
-    bot.send_message(message.from_user.id, 'Привет!')
-
-@bot.message_handler(commands=['low'])
-def get_text_massage(message):
-    global answer
+def print_low(message):
     count = 0
-    bot.send_message(message.from_user.id, 'Животные весом до 1 кг:')
+    answer = int(message.text)
     info = make_request()
-    bot.send_message(message.from_user.id, 'Сколько животных нужно вывести?')
-    bot.register_next_step_handler(message, amount_display)
     for animal in info:
         if count != answer:
             try:
@@ -34,14 +23,12 @@ def get_text_massage(message):
             except:
                 continue
 
-@bot.message_handler(commands=['high'])
-def get_text_massage(message):
+def print_high(message):
     count = 0
-    bot.send_message(message.from_user.id, 'Животные весом более 100 кг:')
-    bot.send_message(message.from_user.id, 'Сколько животных нужно вывести?')
+    answer = int(message.text)
     info = make_request()
-    while count < int(message.text):
-        for animal in info:
+    for animal in info:
+        if count != answer:
             try:
                 if 'kg' in animal['characteristics']['weight']:
                     i_weight = animal['characteristics']['weight'].split()
@@ -54,21 +41,68 @@ def get_text_massage(message):
             except:
                 continue
 
-# @bot.message_handler(commands=['custom'])
-# def get_text_massage(message):
-#     count = 0
-#     bot.send_message(message.from_user.id, 'Животные весом до 1 кг:')
-#     bot.send_message(message.from_user.id, 'Сколько животных нужно вывести?')
-#     info = make_request()
-#     while count != int(message.text):
-#         for animal in info:
-#             try:
-#                 if 'g' in animal['characteristics']['weight'] and 'k' not in animal['characteristics']['weight']:
-#                     bot.send_message(message.from_user.id, animal['name'])
-#                     bot.send_message(message.from_user.id, animal['characteristics']['weight'])
-#                     count += 1
-#             except:
-#                 continue
+def get_min(message):
+    global min_custom
+    min_custom = int(message.text)
+    bot.send_message(message.from_user.id, 'Введите максимальный вес животного в кг')
+    bot.register_next_step_handler(message, get_max)
+
+def get_max(message):
+    global max_custom
+    max_custom = int(message.text)
+    bot.send_message(message.from_user.id, 'Сколько животных нужно вывести? ')
+    bot.register_next_step_handler(message, print_custom)
+
+def print_custom(message):
+    global min_custom
+    global max_custom
+    count = 0
+    answer = int(message.text)
+    info = make_request()
+    for animal in info:
+        if count != answer:
+            try:
+                if 'kg' in animal['characteristics']['weight']:
+                    i_weight = animal['characteristics']['weight'].split()
+                    for elem in i_weight:
+                        if elem.endswith('kg') and '.' not in elem and '-' not in elem:
+                            weight_1 = int(elem[:-2])
+                            if min_custom < weight_1 < max_custom:
+                                bot.send_message(message.from_user.id, animal['name'])
+                                bot.send_message(message.from_user.id, animal['characteristics']['weight'])
+                                count += 1
+                                break
+            except:
+                continue
+
+@bot.message_handler(commands=['start'])
+def get_text_message(message):
+    bot.send_message(message.from_user.id, 'Привет!')
+
+@bot.message_handler(commands=['help'])
+def get_text_message(message):
+    bot.send_message(message.from_user.id,
+                     'Введите /low для вывода самых маленьких животных\n'
+                     'Введите /high для вывода самых больших животных\n'
+                     'Введите /custom для вывода животных по Вашим параметрам')
+
+@bot.message_handler(commands=['low'])
+def get_text_message(message):
+    bot.send_message(message.from_user.id, 'Животные весом до 1 кг:')
+    bot.send_message(message.from_user.id, 'Сколько животных нужно вывести?')
+    bot.register_next_step_handler(message, print_low)
+
+@bot.message_handler(commands=['high'])
+def get_text_message(message):
+    bot.send_message(message.from_user.id, 'Животные весом более 100 кг:')
+    bot.send_message(message.from_user.id, 'Сколько животных нужно вывести?')
+    bot.register_next_step_handler(message, print_high)
+
+@bot.message_handler(commands=['custom'])
+def get_text_message(message):
+    bot.send_message(message.from_user.id, 'Введите минимальный вес животного в кг')
+    bot.register_next_step_handler(message, get_min)
+
 
 def api_request(url: str, headers:dict, querystring: dict) -> Optional[dict]:
     """
