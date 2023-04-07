@@ -22,7 +22,6 @@ def get_text_massage(message):
     count = 0
     bot.send_message(message.from_user.id, 'Животные весом до 1 кг:')
     info = make_request()
-    amount_display(message)
     bot.send_message(message.from_user.id, 'Сколько животных нужно вывести?')
     bot.register_next_step_handler(message, amount_display)
     for animal in info:
@@ -110,7 +109,7 @@ def make_request() -> Optional[dict]:
 
 while True:
     try:
-        bot.polling(none_stop=True, interval=0)
+        bot.polling(none_stop=True, interval=1)
     except KeyboardInterrupt:
         print('Остановка')
         break
