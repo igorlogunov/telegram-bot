@@ -1,6 +1,7 @@
 import telebot
 import time
 from main import make_request
+from db_for_bot import my_db
 
 bot = telebot.TeleBot('5903916240:AAHTMxapD6hnrCSc2fN47FWEh-nTjxYIW5Y')
 
@@ -71,6 +72,7 @@ def print_custom(message):
 @bot.message_handler(commands=['start'])
 def get_text_message(message):
     bot.send_message(message.from_user.id, 'Привет!')
+    my_db.create_table()
 
 @bot.message_handler(commands=['help'])
 def get_text_message(message):
@@ -84,17 +86,27 @@ def get_text_message(message):
     bot.send_message(message.from_user.id, 'Животные весом до 1 кг:')
     bot.send_message(message.from_user.id, 'Сколько животных нужно вывести?')
     bot.register_next_step_handler(message, print_low)
+    my_db.add_entry((message.from_user.id, 'Запрос маленьких животных (до 1кг)'))
 
 @bot.message_handler(commands=['high'])
 def get_text_message(message):
     bot.send_message(message.from_user.id, 'Животные весом более 100 кг:')
     bot.send_message(message.from_user.id, 'Сколько животных нужно вывести?')
     bot.register_next_step_handler(message, print_high)
+    my_db.add_entry((message.from_user.id, 'Запрос больших животных (более 100кг)'))
 
 @bot.message_handler(commands=['custom'])
 def get_text_message(message):
     bot.send_message(message.from_user.id, 'Введите минимальный вес животного в кг')
     bot.register_next_step_handler(message, get_min)
+    my_db.add_entry((message.from_user.id, 'Запрос животных по Вашим параметрам'))
+
+@bot.message_handler(commands=['history'])
+def get_text_message(message):
+    rows = my_db.get_data()
+    bot.send_message(message.from_user.id, 'Последние запросы: ')
+    for row in rows:
+        bot.send_message(message.from_user.id, row[1])
 
 while True:
     try:
